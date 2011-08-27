@@ -74,7 +74,7 @@ sub set_recent_commented_articles {
         GROUP BY a.id ORDER BY MAX(c.id) DESC LIMIT 10',
         { Slice => {} });
 
-    $self->mem->set($cache_key => $recent_commented_articles, 60);
+    $self->mem->set("recent_commented_articles" => $recent_commented_articles, 60);
     return $recent_commented_articles;
 }
 
@@ -83,8 +83,7 @@ filter 'recent_commented_articles' => sub {
     sub {
         my ( $self, $c )  = @_;
 
-        my $cache_key = "recent_commented_articles";
-        my $recent_commented_articles = $self->mem->get($cache_key);
+        my $recent_commented_articles = $self->mem->get("recent_commented_articles");
         unless ( $recent_commented_articles ) {
             $recent_commented_articles = $self->set_recent_commented_articles;
         }
