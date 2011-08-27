@@ -7,6 +7,7 @@ use Devel::KYTProf;
 use Kossy;
 use DBI;
 use JSON;
+use Cache::Memcached::Fast;
 
 our $VERSION = 0.01;
 
@@ -24,6 +25,16 @@ sub _load_config {
     my $json = <$fh>;
     close($fh);
     decode_json($json);    
+}
+
+sub mem {
+    my $self = shift;
+    $self->{__mem} ||= Cache::Memcached::Fast->new({
+        servers => [
+            'xxx.xxx.xxx.xxx:11211',
+            'xxx.xxx.xxx.xxx:11211',
+        ]
+    });
 }
 
 sub dbh {
