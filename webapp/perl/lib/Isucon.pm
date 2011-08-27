@@ -99,6 +99,7 @@ post '/post' => sub {
     my ( $self, $c )  = @_;
     my $sth = $self->dbh->prepare('INSERT INTO article SET title = ?, body = ?');
     $sth->execute($c->req->param('title'), $c->req->param('body'));
+    $self->mem->delete('recent_commented_articles');
     $c->redirect($c->req->uri_for('/'));
 };
 
@@ -111,6 +112,7 @@ post '/comment/:articleid' => sub {
         $c->req->param('name'), 
         $c->req->param('body')
     );
+    $self->mem->delete('recent_commented_articles');
     $c->redirect($c->req->uri_for('/article/'.$c->args->{articleid}));
 };
 
