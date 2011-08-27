@@ -55,10 +55,17 @@ filter 'recent_commented_articles' => sub {
     sub {
         my ( $self, $c )  = @_;
 
-        $c->stash->{recent_commented_articles} = $self->dbh->selectall_arrayref(
-            'SELECT a.id, a.title FROM comment c INNER JOIN article a ON c.article = a.id 
-            GROUP BY a.id ORDER BY MAX(c.id) DESC LIMIT 10',
-            { Slice => {} });
+        my $recent_commented_articles = $self->mem->get("recent_commented_articles");
+        unless ( $recent_commented_articles ) {
+            $recent_commented_articles = $self->dbh->selectall_arrayref(
+                'SELECT a.id, a.title FROM comment c INNER JOIN article a ON c.article = a.id 
+                GROUP BY a.id ORDER BY MAX(c.id) DESC LIMIT 10',
+                { Slice => {} });
+
+            $self->mem->set('recent_commented_articles' => $recent_commented_articles, 60);
+        }
+
+        $c->stash->{recent_commented_articles} = $recent_commented_articles;
         $app->($self,$c);
     }
 };
