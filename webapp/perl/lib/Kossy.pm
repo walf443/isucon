@@ -11,20 +11,20 @@ use Cwd qw//;
 use File::Basename qw//;
 use Text::Xslate;
 use Try::Tiny;
-use Class::Accessor::Lite (
-    new => 0,
-    rw => [qw/root_dir/]
-);
 use base qw/Exporter/;
 
 our @EXPORT = qw/new root_dir psgi build_app _router _connect get post filter wrap_filter/;
+
+my $_ROOT_DIR;
+sub root_dir { $_ROOT_DIR }
 
 sub new {
     my $class = shift;
     my $root_dir = shift;
     my @caller = caller;
     $root_dir ||= File::Basename::dirname( Cwd::realpath($caller[1]) );
-    bless { root_dir => $root_dir }, $class;
+    $_ROOT_DIR = $root_dir;
+    bless +{}, $class;
 }
 
 sub psgi {
@@ -41,7 +41,7 @@ sub psgi {
         enable 'ReverseProxy';
         enable 'Static',
             path => qr!^/(?:(?:css|js|images)/|favicon\.ico$)!,
-            root => $self->{root_dir} . '/public';
+            root => $self->root_dir . '/public';
         $app;
     };
 }

@@ -9,19 +9,26 @@ use JSON;
 
 our $VERSION = 0.01;
 
+my $config;
+
 sub load_config {
     my $self = shift;
-    return $self->{_config} if $self->{_config};
+    $config ||= $self->_load_config;
+}
+
+sub _load_config {
+    my $self = shift;
     open( my $fh, '<', $self->root_dir . '/../config/hosts.json') or die $!;
     local $/;
     my $json = <$fh>;
-    $self->{_config} = decode_json($json);    
+    close($fh);
+    decode_json($json);    
 }
 
 sub dbh {
     my $self = shift;
     my $config = $self->load_config;
-    my $host = $config->{servers}->{database}->[0] || '127.0.0.1';
+    my $host = $config->{servers}{database}[0] || '127.0.0.1';
     DBI->connect_cached('dbi:mysql:isucon;host='.$host,'isuconapp','isunageruna',{
         RaiseError => 1,
         PrintError => 0,
