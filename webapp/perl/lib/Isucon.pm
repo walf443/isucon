@@ -114,9 +114,9 @@ get '/post' => [qw/recent_commented_articles/] => sub {
 
 post '/post' => sub {
     my ( $self, $c )  = @_;
+    $self->mem->delete('recent_commented_articles');
     my $sth = $self->dbh->prepare('INSERT INTO article SET title = ?, body = ?');
     $sth->execute($c->req->param('title'), $c->req->param('body'));
-    $self->mem->delete('recent_commented_articles');
     $c->redirect($c->req->uri_for('/'));
 };
 
