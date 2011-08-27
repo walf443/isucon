@@ -35,9 +35,10 @@ filter 'recent_commented_articles' => sub {
     my $app = shift;
     sub {
         my ( $self, $c )  = @_;
+
         $c->stash->{recent_commented_articles} = $self->dbh->selectall_arrayref(
             'SELECT a.id, a.title FROM comment c INNER JOIN article a ON c.article = a.id 
-            GROUP BY a.id ORDER BY MAX(c.created_at) DESC LIMIT 10',
+            GROUP BY a.id ORDER BY MAX(c.id) DESC LIMIT 10',
             { Slice => {} });
         $app->($self,$c);
     }
