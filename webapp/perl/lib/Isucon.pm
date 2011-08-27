@@ -58,7 +58,7 @@ sub dbh {
     my $self = shift;
     my $config = $self->load_config;
     my $host = $config->{servers}{database}[0] || '127.0.0.1';
-    DBI->connect_cached('dbi:mysql:isucon;host='.$host,'isuconapp','isunageruna',{
+    $self->{dbh} ||= DBI->connect_cached('dbi:mysql:isucon;host='.$host,'isuconapp','isunageruna',{
         RaiseError => 1,
         PrintError => 0,
         ShowErrorStatement => 1,
