@@ -56,6 +56,7 @@ sub build_app {
     #xslate
     my $tx = Text::Xslate->new(
         path => [ $self->root_dir . '/views' ],
+        cache => 2,
         input_layer => ':utf8',
         module => ['Text::Xslate::Bridge::TT2Like']
     );
