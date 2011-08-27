@@ -68,6 +68,7 @@ sub dbh {
 }
 
 sub set_recent_commented_articles {
+    my $self = shift;
     my $recent_commented_articles = $self->dbh->selectall_arrayref(
         'SELECT a.id, a.title FROM comment c INNER JOIN article a ON c.article = a.id 
         GROUP BY a.id ORDER BY MAX(c.id) DESC LIMIT 10',
