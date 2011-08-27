@@ -67,6 +67,16 @@ sub dbh {
     });
 }
 
+sub set_recent_commented_articles {
+    my $recent_commented_articles = $self->dbh->selectall_arrayref(
+        'SELECT a.id, a.title FROM comment c INNER JOIN article a ON c.article = a.id 
+        GROUP BY a.id ORDER BY MAX(c.id) DESC LIMIT 10',
+        { Slice => {} });
+
+    $self->mem->set($cache_key => $recent_commented_articles, 60);
+    return $recent_commented_articles;
+}
+
 filter 'recent_commented_articles' => sub {
     my $app = shift;
     sub {
@@ -75,12 +85,7 @@ filter 'recent_commented_articles' => sub {
         my $cache_key = "recent_commented_articles";
         my $recent_commented_articles = $self->mem->get($cache_key);
         unless ( $recent_commented_articles ) {
-            $recent_commented_articles = $self->dbh->selectall_arrayref(
-                'SELECT a.id, a.title FROM comment c INNER JOIN article a ON c.article = a.id 
-                GROUP BY a.id ORDER BY MAX(c.id) DESC LIMIT 10',
-                { Slice => {} });
-
-            $self->mem->set($cache_key => $recent_commented_articles, 60);
+            $recent_commented_articles = $self->set_recent_commented_articles;
         }
 
         $c->stash->{recent_commented_articles} = $recent_commented_articles;
@@ -129,7 +134,7 @@ post '/post' => sub {
 post '/comment/:articleid' => sub {
     my ( $self, $c )  = @_;
 
-    $self->mem->delete('recent_commented_articles');
+    $self->set_recent_commented_articles;
     my $sth = $self->dbh->prepare('INSERT INTO comment SET article = ?, name =?, body = ?');
     $sth->execute(
         $c->args->{articleid},
