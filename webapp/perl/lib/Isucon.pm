@@ -106,6 +106,16 @@ get '/' => [qw/recent_commented_articles/] => sub {
     $c->render('index.tx', { articles => $rows });
 };
 
+sub set_recent_comments {
+    my ($self, $articleid) = @_;
+    my $comments = $self->dbh->selectall_arrayref(
+        'SELECT name,body,created_at FROM comment WHERE article=? ORDER BY id', 
+        { Slice => {} }, $articleid);
+
+    $self->mem->set($articleid => $comments, 60);
+    return $comments;
+}
+
 get '/article/:articleid' => [qw/recent_commented_articles/] => sub {
     my ( $self, $c )  = @_;
     
@@ -118,9 +128,10 @@ get '/article/:articleid' => [qw/recent_commented_articles/] => sub {
         $self->mem->set($c->args->{articleid},$article,60);
     }      
 
-    my $comments = $self->dbh->selectall_arrayref(
-        'SELECT name,body,created_at FROM comment WHERE article=? ORDER BY id', 
-        { Slice => {} }, $c->args->{articleid});
+    my $comments = $self->mem->get($c->args->{articleid});
+    unless ( $comments ) {
+        $comments = $self->set_recent_comments($c->args->{articleid});
+    }
 
     $c->render('article.tx', { article => $article, comments => $comments });
 };
@@ -151,6 +162,7 @@ post '/comment/:articleid' => sub {
         $c->req->param('body')
     );
     $self->set_recent_commented_articles;
+    $self->set_recent_comments($c->args->{articleid});
     $c->redirect($c->req->uri_for('/article/'.$c->args->{articleid}));
 };
 
