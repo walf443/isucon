@@ -44,10 +44,10 @@ filter 'recent_commented_articles' => sub {
         my ( $self, $c )  = @_;
 
         my $recent_comments_by_article = $self->dbh->selectall_arrayref(
-            'select article from comment group by article order by id DESC limit 10',
+            'select article from comment group by article order by id DESC limit 10'
             { Slice => {} });
 
-        my $cond = join ',', map { '?' } @{ $recent_comments_by_article };
+        my $cond = join ',' map { '?' } @{ $recent_comments_by_article };
         $c->stash->{recent_commented_articles} = $self->dbh->selectall_arrayref(
             "SELECT id, title FROM article WHERE id IN ($cond)",
             { Slice => {} },
