@@ -8,6 +8,8 @@ use Kossy;
 use DBI;
 use JSON;
 use Cache::Memcached::Fast;
+use Compress::LZF;
+use Data::MessagePack;
 
 our $VERSION = 0.01;
 
@@ -29,11 +31,26 @@ sub _load_config {
 
 sub mem {
     my $self = shift;
-    $self->{__mem} ||= Cache::Memcached::Fast->new({
+    $self->{__mem} ||= Cache::Memcached::Fast->new(+{
         servers => [
             'xxx.xxx.xxx.xxx:11211',
             'xxx.xxx.xxx.xxx:11211',
-        ]
+        ],
+        connect_timeout => 0.2,
+        io_timeout => 0.5,
+        close_on_error => 1,
+        compress_threshold => 100_000,
+        compress_ratio => 0.9,
+        compress_methods => [ sub { $_[1] = Compress::LZF::compress($_[0]) } ,
+                              sub { $_[1] = Compress::LZF::decompress($_[0]) } ],
+        max_failures => 3,
+        failure_timeout => 2,
+        ketama_points => 150,
+        nowait => 1,
+        hash_namespace => 1,
+        serialize_methods => [ sub { Data::MessagePack->pack($_[0]) }, sub { Data::MessagePack->unpack($_[0]) } ],
+        utf8 => 1,
+        max_size => 512 * 1024,
     });
 }
 
