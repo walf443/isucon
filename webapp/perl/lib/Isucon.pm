@@ -94,7 +94,7 @@ get '/' => [qw/recent_commented_articles/] => sub {
     my $rows = $self->mem->get('top_articles');
 
     unless( $rows ) {
-        my $rows = $self->dbh->selectall_arrayref(
+        $rows = $self->dbh->selectall_arrayref(
             'SELECT id,title,body,created_at FROM article ORDER BY id DESC LIMIT 10',
             { Slice => {} });
         $self->mem->set('top_articles',$rows,60);       
