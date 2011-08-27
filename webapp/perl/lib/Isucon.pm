@@ -109,14 +109,24 @@ get '/' => [qw/recent_commented_articles/] => sub {
 
 get '/article/:articleid' => [qw/recent_commented_articles/] => sub {
     my ( $self, $c )  = @_;
-    my $article = $self->dbh->selectrow_hashref(
-        'SELECT id,title,body,created_at FROM article WHERE id=?',
-        {}, $c->args->{articleid});
+    
+    my $article = $self->mem->get($c->args->{articleid});
+   
+    unless( $article ) {
+        $article = $self->dbh->selectrow_hashref(
+            'SELECT id,title,body,created_at FROM article WHERE id=?',
+            {}, $c->args->{articleid});
+        $self->mem->set($c->args->{articleid},$article,60);
+    }      
+
     my $comments = $self->dbh->selectall_arrayref(
         'SELECT name,body,created_at FROM comment WHERE article=? ORDER BY id', 
         { Slice => {} }, $c->args->{articleid});
+
     $c->render('article.tx', { article => $article, comments => $comments });
 };
+
+
 
 get '/post' => [qw/recent_commented_articles/] => sub {
     my ( $self, $c )  = @_;
