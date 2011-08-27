@@ -90,9 +90,15 @@ filter 'recent_commented_articles' => sub {
 
 get '/' => [qw/recent_commented_articles/] => sub {
     my ( $self, $c )  = @_;
-    my $rows = $self->dbh->selectall_arrayref(
-        'SELECT id,title,body,created_at FROM article ORDER BY id DESC LIMIT 10',
-        { Slice => {} });
+
+    my $rows = $self->mem->get('top_articles');
+
+    unless( $rows ) {
+        my $rows = $self->dbh->selectall_arrayref(
+            'SELECT id,title,body,created_at FROM article ORDER BY id DESC LIMIT 10',
+            { Slice => {} });
+        $self->mem->set('top_articles',$rows,60);       
+    }     
     $c->render('index.tx', { articles => $rows });
 };
 
@@ -114,7 +120,7 @@ get '/post' => [qw/recent_commented_articles/] => sub {
 
 post '/post' => sub {
     my ( $self, $c )  = @_;
-    $self->mem->delete('recent_commented_articles');
+    $self->mem->delete($_) for qw/top_articles recent_commented_articles/;
     my $sth = $self->dbh->prepare('INSERT INTO article SET title = ?, body = ?');
     $sth->execute($c->req->param('title'), $c->req->param('body'));
     $c->redirect($c->req->uri_for('/'));
