@@ -123,13 +123,13 @@ post '/post' => sub {
 post '/comment/:articleid' => sub {
     my ( $self, $c )  = @_;
 
+    $self->mem->delete('recent_commented_articles');
     my $sth = $self->dbh->prepare('INSERT INTO comment SET article = ?, name =?, body = ?');
     $sth->execute(
         $c->args->{articleid},
         $c->req->param('name'), 
         $c->req->param('body')
     );
-    $self->mem->delete('recent_commented_articles');
     $c->redirect($c->req->uri_for('/article/'.$c->args->{articleid}));
 };
 
