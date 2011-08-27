@@ -112,7 +112,7 @@ sub set_recent_comments {
         'SELECT name,body,created_at FROM comment WHERE article=? ORDER BY id', 
         { Slice => {} }, $articleid);
 
-    $self->mem->set($articleid => $comments, 60);
+    $self->mem->set("comment" . $articleid => $comments, 60);
     return $comments;
 }
 
@@ -128,7 +128,7 @@ get '/article/:articleid' => [qw/recent_commented_articles/] => sub {
         $self->mem->set($c->args->{articleid},$article,60);
     }      
 
-    my $comments = $self->mem->get($c->args->{articleid});
+    my $comments = $self->mem->get("comment" . $c->args->{articleid});
     unless ( $comments ) {
         $comments = $self->set_recent_comments($c->args->{articleid});
     }
