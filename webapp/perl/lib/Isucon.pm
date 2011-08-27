@@ -135,22 +135,23 @@ get '/post' => [qw/recent_commented_articles/] => sub {
 
 post '/post' => sub {
     my ( $self, $c )  = @_;
-    $self->mem->delete_multi(qw/top_articles recent_commented_articles/);
+    $self->mem->delete_multi(qw/top_articles /);
     my $sth = $self->dbh->prepare('INSERT INTO article SET title = ?, body = ?');
     $sth->execute($c->req->param('title'), $c->req->param('body'));
+    $self->set_recent_commented_articles;
     $c->redirect($c->req->uri_for('/'));
 };
 
 post '/comment/:articleid' => sub {
     my ( $self, $c )  = @_;
 
-    $self->set_recent_commented_articles;
     my $sth = $self->dbh->prepare('INSERT INTO comment SET article = ?, name =?, body = ?');
     $sth->execute(
         $c->args->{articleid},
         $c->req->param('name'), 
         $c->req->param('body')
     );
+    $self->set_recent_commented_articles;
     $c->redirect($c->req->uri_for('/article/'.$c->args->{articleid}));
 };
 
