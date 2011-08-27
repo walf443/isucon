@@ -55,14 +55,15 @@ filter 'recent_commented_articles' => sub {
     sub {
         my ( $self, $c )  = @_;
 
-        my $recent_commented_articles = $self->mem->get("recent_commented_articles");
+        my $cache_key = "recent_commented_articles";
+        my $recent_commented_articles = $self->mem->get($cache_key);
         unless ( $recent_commented_articles ) {
             $recent_commented_articles = $self->dbh->selectall_arrayref(
                 'SELECT a.id, a.title FROM comment c INNER JOIN article a ON c.article = a.id 
                 GROUP BY a.id ORDER BY MAX(c.id) DESC LIMIT 10',
                 { Slice => {} });
 
-            $self->mem->set('recent_commented_articles' => $recent_commented_articles, 60);
+            $self->mem->set($cache_key => $recent_commented_articles, 60);
         }
 
         $c->stash->{recent_commented_articles} = $recent_commented_articles;
