@@ -1,5 +1,4 @@
 package Isucon;
-use Devel::KYTProf;
 
 use strict;
 use warnings;
