@@ -46,7 +46,7 @@ sub mem {
         max_failures => 3,
         failure_timeout => 2,
         ketama_points => 150,
-        nowait => 1,
+        # nowait => 1,
         hash_namespace => 1,
         serialize_methods => [ sub { Data::MessagePack->pack($_[0]) }, sub { Data::MessagePack->unpack($_[0]) } ],
         utf8 => 1,
