@@ -3,7 +3,6 @@ package Isucon;
 use strict;
 use warnings;
 use utf8;
-use Devel::KYTProf;
 use Kossy;
 use DBI;
 use JSON;
